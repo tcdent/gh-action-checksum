@@ -157,9 +157,15 @@ let releaseContent: string;
 if (isDryRun) {
   releaseContent = await getReleaseNoAuth(repo, tag);
 } else {
-  releaseContent = await $`gh release view ${tag} -R ${repo} --json assets`.text();
+  releaseContent = await $`gh release view ${tag} -R ${repo} --json assets,tarballUrl,zipballUrl`.text();
 }
-const releases: { assets: Asset[] } = JSON.parse(releaseContent);
+const releaseData = JSON.parse(releaseContent);
+const nativeAssets = [
+  { name: "tarball", url: releaseData.tarballUrl }, 
+  { name: "zipball", url: releaseData.zipballUrl }
+];   
+const assets = releaseData.assets + nativeAssets;
+const releases: { assets: Asset[] } = { assets: assets };
 
 for (const asset of releases.assets) {
   if (asset.name == checkSumPath) {
